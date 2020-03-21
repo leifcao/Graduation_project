@@ -27,7 +27,7 @@
           <td><span :title="item.phonename" class="phonetr1">{{item.phonename}}</span></td>
           <td>{{item.scores}}</td>
           <td><span :title="item.comments" class="phonetr2">{{item.comments}}</span></td>
-          <td>{{item.createTime}}</td>
+          <td>{{Dateformat(item.createTime)}}</td>
           <td>
             <span @click="sure(item)">通过</span>
             <span @click="querymess(item)">驳回</span>
@@ -55,7 +55,7 @@
           <td><span :title="item.phonename" class="phonetr1">{{item.phonename}}</span></td>
           <td>{{item.scores}}</td>
           <td><span :title="item.comments" class="phonetr2">{{item.comments}}</span></td>
-          <td>{{item.createTime}}</td>
+          <td>{{Dateformat(item.createTime)}}</td>
           <td>
             <span @click="querymess(item)">修改</span>
             <span @click="deleComment(item)">删除</span>
@@ -68,7 +68,7 @@
     <div class="feedbacks" v-for="(item,index) in rejectMess" :key="index" v-show="feedflag">
       <div>
         <ul>
-          <li><p>该评论在{{item.createTime}}评论</p></li>
+          <li><p>该评论在{{Dateformat(item.createTime)}}评论</p></li>
           <li><span>手机名称:</span><span>{{item.phonename}}</span></li>
           <li><span>评分:</span><span>{{item.scores}}</span></li>
           <li><span>评论信息:</span><span>{{item.comments}}</span></li>
@@ -109,6 +109,15 @@
       this.GetComment(1); //已审核
     },
     methods: {
+      // 日期格式化
+      Dateformat(time){
+        time = Number(time);
+        let t = new Date(time).getFullYear();
+        let t1 = new Date(time).getMonth() + 1;
+        let t2 = new Date(time).getDate();
+        var createTime = t + '年' + t1 + '月' + t2 + '日';
+        return createTime;
+      },
       //评论信息获取
       GetComment(types) {
         let type = types;
