@@ -91,7 +91,7 @@ var sqlMap = {
   },
   CommentSql: {
     //添加评论
-    addcomment: 'INSERT INTO comment(pid,userName,phonename,phonetype,scores,comments,createTime,pass) VALUES (?,?,?,?,?,?,?,0)',
+    addcomment: 'INSERT INTO comment(pid,userName,targetName,phonename,phonetype,scores,comments,createTime,pass,tag) VALUES (?,?,?,?,?,?,?,?,?,?)',
     //超级管理检测评论
     checkcomment: '',
     //查看评论
