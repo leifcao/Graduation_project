@@ -13,7 +13,7 @@ router.post('/setComment', (req, res) => {
   for (let i in params) {
     message.push(params[i]);
   }
-  console.log(mysql,message)
+  // console.log(mysql,message);
   connection.query(mysql, message, (err, result) => {
     if (err) {
       res.json(err);
@@ -36,7 +36,36 @@ router.post('/getComment', (req, res) => {
       res.json(err);
       return;
     }
-    res.json(result);
+    let list =[];
+    Object.assign(list,result);
+    // console.log(list)
+    // 评论数组
+    var newlist=[];
+    // 回复数组
+    var oldlist = [];
+    // 分类评论和回复内容
+    for(var i=0;i<list.length;i++){
+      if(list[i].targetName==''){
+        newlist.push(list[i]);
+      }else{
+        oldlist.push(list[i]);
+      }
+    }
+    for(var i=0;i<newlist.length;i++){
+      for(var j=0;j<oldlist.length;j++){
+        if(newlist[i].cid == oldlist[j].tag ){
+          if(newlist[i].target == undefined){
+            newlist[i].target =[];
+            newlist[i].target.push(oldlist[j]);
+            continue;
+          }
+          newlist[i].target.push(oldlist[j]);
+        }
+      }
+    }
+
+    // console.log(newlist);
+    res.json(newlist);
   });
   connection.end();
 });
