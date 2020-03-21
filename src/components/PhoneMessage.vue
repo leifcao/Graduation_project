@@ -326,22 +326,42 @@
         <!--  手机点评  -->
         <div class="Phone_reviews">
           <div class="Reviews_title" ref="Reviews"><h1>在线留言</h1></div>
-          <div class="Reviews_main" v-for="(item,index) in CommentList" :key="index">
-            <div class="Reviews_user">
-              <img src="../assets/logo.png" alt="">
-              <p>{{item.userName.split('')[0]}}***</p>
-            </div>
-            <div class="Reviews_score">
-              <div class="Score_fixed">
-                <div class="star">
-                  <em :style="{width:item.scores*10+'%'}"></em>
+          <div class="Reviews_main" v-for="(item,index) in CommentList" :key="item.cid">
+            <div>
+              <div class="Reviews_user">
+                <img src="../assets/logo.png" alt="">
+                <p>{{item.userName}}</p>
+              </div>
+              <div class="Reviews_score">
+                <div class="Score_fixed">
+                  <div class="star">
+                    <em :style="{width:item.scores*10+'%'}"></em>
+                  </div>
+                  <span>{{item.scores}}分</span>
                 </div>
-                <span>{{item.scores}}</span>
               </div>
             </div>
             <div class="Reviewes_message">
               <div class="Reviews_MessMain">
-                <span>{{item.comments}}</span>
+                <span class="Reviews_comment">{{item.comments}}</span>
+                <p class="Reviewes_end">
+                  <span>{{Dateformat(item.createTime)}}</span>
+                  <span @click="replyflag=item.cid,target=item.userName">回复</span>
+                </p>
+                <div class="Reviews_reply">
+                  <div v-for="(obj,i) in item.target" :key="i">
+                  <span><em>{{obj.userName}}</em>&nbsp;回复&nbsp;<em>@{{obj.targetName}}</em>:</span>
+                  <span class="Reviews_comment">{{obj.comments}}</span>
+                    <p class="Reviewes_end">
+                      <span>{{Dateformat(obj.createTime)}}</span>
+                      <span  @click="replyflag=item.cid,target=obj.userName">回复</span>
+                    </p>
+                  </div>
+                  <p v-show="replyflag==item.cid">
+                    <textarea name="" v-model="replycomments" :placeholder="'回复'+target+':'"></textarea>
+                    <span class="replystyle" @click="reply(item)">确定</span>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -413,6 +433,8 @@
         commentflag: true, //评论默认关闭
         scores: '',  //分数
         comments: '',  //评论
+        replycomments: '', //回复
+        target: '', // 回复 用户暂存
         userMess: '',//用户名 默认为空
         hobbyget: '', //推荐类型手机存储
         delePhoneflag: '', //删除单个手机的flag
@@ -420,6 +442,7 @@
         compareCarNum: 0,//对比栏手机数量
         comparebtnFlag: true,  //取消对比flag
         DontRepeat: true,  //重复点击禁止
+        replyflag: '', // 回复按钮
       }
     },
     created() {
@@ -540,7 +563,7 @@
           alert('请选择对比商品');
           return;
         }
-        if(array.length ==1){
+        if (array.length == 1) {
           alert('商品不足，无法对比');
           return;
         }
@@ -565,6 +588,7 @@
         axios.post(url, {pid}).then(res => {
           if (res.status === 200) {
             this.CommentList = res.data;
+            console.log(res.data);
           }
         });
       },
@@ -592,33 +616,40 @@
           } else {
             // this.commentflag = true;
             this.DontRepeat = true;
-            if (this.scores == ''||Number(this.scores) > 10) {
+            if (this.scores == '' || Number(this.scores) > 10) {
               alert("请正确填写信息");
               return;
             }
-            if (this.comments == '' || this.comments.length>200) {
+            if (this.comments == '' || this.comments.length > 200) {
               // console.log(Number(this.scores));
-              alert("请正确填写信息");
+              alert("信息不能为空或者字数超过200");
               return;
             }
+            let targetName = '';
+            let tag = 0;
+            let pass = 0;
             let scores = this.scores; //评分
             let comments = this.comments; //评论信息
             let pid = this.id; // 手机id
             let phonename = this.PhoneDetailedList[0].name;// 手机id
             let phonetype = this.PhoneDetailedList[0].type;
-            let t = new Date().getFullYear();
-            let t1 = new Date().getMonth() + 1;
-            let t2 = new Date().getDate();
-            var createTime = t + '年' + t1 + '月' + t2 + '日';
+            // let t = new Date().getFullYear();
+            // let t1 = new Date().getMonth() + 1;
+            // let t2 = new Date().getDate();
+            // var createTime = t + '年' + t1 + '月' + t2 + '日';
+            var createTime = new Date().getTime();
             let url = urlkit + '/api/userComment/setComment';
             axios.post(url, {
               pid,
               userName,
+              targetName,
               phonename,
               phonetype,
               scores,
               comments,
-              createTime
+              createTime,
+              pass,
+              tag,
             }).then(res => {
               if (res.status === 200) {
                 alert(res.data.mess);
@@ -631,11 +662,83 @@
               console.log(err);
             });
           }
-        }
-        else{
+        } else {
           alert('请勿重复点击');
         }
       },
+
+      //  提交回复
+      reply(item) {
+        let userName = JSON.parse(sessionStorage.getItem('userName')) || '';
+        if (this.DontRepeat) {  //防止重复点击
+          this.DontRepeat = false;
+          if (userName == '') {
+            alert('请登录页面');
+            this.$store.commit('LoginComment');
+            this.DontRepeat = true;
+            return;
+          } else {
+            this.DontRepeat = true;
+            if(userName == this.target){
+              this.replycomments = '';
+              alert('不能回复自己');
+              return;
+            }
+
+            if (this.replycomments == '' || this.replycomments.length > 200) {
+              alert("信息不能为空或者字数超过200");
+              return;
+            }
+            let targetName = this.target;
+            let scores = 0; //评分
+            let tag = item.cid;
+            let pass = 1;
+            let comments = this.replycomments; //评论信息
+            let pid = this.id; // 手机id
+            let phonename = this.PhoneDetailedList[0].name;// 手机id
+            let phonetype = this.PhoneDetailedList[0].type;
+            let createTime = new Date().getTime();
+            let url = urlkit + '/api/userComment/setComment';
+            axios.post(url, {
+              pid,
+              userName,
+              targetName,
+              phonename,
+              phonetype,
+              scores,
+              comments,
+              createTime,
+              pass,
+              tag,
+            }).then(res => {
+              if (res.status === 200) {
+                alert('回复成功');
+                this.replycomments = ''; // 清空回复信息
+                this.target = ''; // 清空回复目标
+                this.replyflag = '';  //隐藏回复输入框
+                this.DontRepeat = true; //防止重复点击
+                this.queryComment();// 刷新评论列表
+              }
+            }).catch(err => {
+              console.log(err);
+            });
+          }
+        } else {
+          alert('请勿重复点击');
+        }
+      },
+
+      // 日期格式化
+      Dateformat(time){
+        time = Number(time);
+        let t1 = new Date(time).getMonth() + 1;
+        let t2 = new Date(time).getDate();
+        let t3 = new Date(time).getHours();
+        let t4 = new Date(time).getMinutes();
+        var createTime = t1 + '月' + t2 + '日'+' '+t3+':'+t4;
+        return createTime;
+      },
+
       //获取推荐手机列表方法
       GetRecommend(minPrice, maxPrice) {
         var ptype = JSON.parse(sessionStorage.getItem('phonetype')) || '';
@@ -669,7 +772,9 @@
         }
 
         this.GetRecommend(Number(minPrice), Number(maxPrice));
-      }
+      },
+
+
     },
     watch: {},
     components: {
@@ -987,7 +1092,7 @@
 
   .Phone_reviews .Reviews_main {
     overflow: hidden;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
   }
 
   .Phone_reviews .Reviews_main .Reviews_user {
@@ -996,8 +1101,8 @@
   }
 
   .Phone_reviews .Reviews_main .Reviews_user img {
-    width: 55px;
-    height: 55px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: inline-block;
     margin: 5px 0px 0px 45px;
@@ -1005,32 +1110,36 @@
   }
 
   .Phone_reviews .Reviews_main .Reviews_user p {
-    margin-left: 45px;
+    margin-left: 30px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     text-align: center;
   }
 
   .Phone_reviews .Reviews_main .Reviews_score {
-    float: left;
-    width: 200px;
-    height: 50px;
-    margin: 5px 30px;
+    /*float: left;*/
+    /*width: 200px;*/
+    /*height: 50px;*/
+    margin: 0px 10px;
   }
 
   /* 清楚浮动 */
-  .Phone_reviews .Reviews_main .Reviews_score:after {
-    content: '';
-    clear: both;
-    display: block;
-  }
+  /*.Phone_reviews .Reviews_main .Reviews_score:after {*/
+  /*  content: '';*/
+  /*  clear: both;*/
+  /*  display: block;*/
+  /*}*/
 
   .Phone_reviews .Reviews_main .Reviews_score .Score_fixed {
     overflow: hidden;
+    padding-left: 10px;
   }
 
   .Phone_reviews .Reviews_main .Reviews_score .Score_fixed .star {
     overflow: hidden;
     float: left;
-    margin: 25px 0px;
+    margin: 10px 0px;
     width: 92px;
     /*height: 16px;*/
     background-image: url(../assets/pingfen2.png);
@@ -1049,24 +1158,70 @@
   .Phone_reviews .Reviews_main .Reviews_score .Score_fixed span {
     float: left;
     font-size: 16px;
-    margin: 25px 10px;
+    margin: 10px 10px;
   }
 
   .Phone_reviews .Reviews_main .Reviewes_message {
-    width: 100%;
-    padding: 10px;
+    /*width: 80%;*/
+    /*padding: 10px;*/
     float: left;
     background-color: #e5e5e5;
-
+    padding: 10px;
+    margin-left: 10px;
   }
 
   .Phone_reviews .Reviews_main .Reviewes_message .Reviews_MessMain {
-    margin-left: 120px;
+    /*margin-left: 120px;*/
     width: 750px;
   }
+  .Phone_reviews .Reviews_main .Reviewes_message .Reviews_MessMain span{
+    padding: 5px;
+    word-break: break-all;
+    /*width: 400px;*/
+  }
+
+  .Reviews_main .Reviewes_message .Reviews_MessMain .Reviews_comment {
+    /*background-color: gray;*/
+  }
+
+  .Phone_reviews .Reviews_main .Reviewes_message .Reviews_MessMain .Reviews_reply div{
+    margin-top: 10px;
+  }
+
+  .Phone_reviews .Reviews_main .Reviewes_message .Reviews_MessMain .Reviews_reply em{
+    font-style: normal;
+    color: #768eb6;
+  }
+
+  .Phone_reviews .Reviews_main .Reviewes_message .Reviews_MessMain .Reviews_reply .replystyle{
+    display: inline;
+    position: relative;
+    background-color: #535582;
+    top: -8px;
+    color: white;
+    padding: 5px 20px;
+  }
+
+  .Reviewes_end{
+    float: right;
+    color: gray;
+  }
+
+  .Reviewes_end span{
+    font-size: 12px;
+  }
+
+
+  .Phone_reviews .Reviews_main .Reviewes_message .Reviews_MessMain .Reviews_reply textarea {
+    width: 400px;
+    height: 50px;
+    padding: 5px;
+    margin-top: 10px;
+  }
+
 
   .Phone_reviews .Reviews_Mine {
-    margin-left: 125px;
+    margin-left: 67px;
   }
 
   .Phone_reviews .Reviews_Mine div {
@@ -1104,7 +1259,8 @@
     height: 30px;
     text-align: center;
     line-height: 30px;
-    background-color: lightblue;
+    background-color: #535582;
+    color: white;
     left: 280px;
     margin-top: 10px;
     margin-bottom: 10px;
