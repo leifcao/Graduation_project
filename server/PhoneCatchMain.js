@@ -29,9 +29,9 @@ async function getMessage(url) {
   var url_Array = []  //解析商品详情页的地址
   var old_urls1 = []  //商品显示更多参数的地址
   var url_Array2 = []  //解析商品显示更多参数的地址
-  var app = await fetch(url).then(res => res.text())
-  var $ = cheerio.load(app, {decodeEntities: false})
-  ele = $("#J_PicMode a.pic")
+  var app = await fetch(url).then(res => res.text());
+  var $ = cheerio.load(app, {decodeEntities: false});
+  ele = $("#J_PicMode a.pic");
 
   //拼接首页地址
   for (let i = 0; i < ele.length; i++) {
