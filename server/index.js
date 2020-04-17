@@ -30,9 +30,9 @@ app.use(badyParser.urlencoded({
 // 后端api路由
 app.use('/api/user', userApi);  //用户
 app.use('/api/product', phoneproducts); //手机列表
-app.use('/api/userComment', Comments);  //评论列表
-app.use('/api/userCommend', Recommends);  //推荐列表
-app.use('/api/AdminProduct', AdminProduct);  //推荐列表
+app.use('/api/userComment', Comments);  //评论列表API
+app.use('/api/userCommend', Recommends);  //信息推荐API
+app.use('/api/AdminProduct', AdminProduct);  //管理员管理API
 
 
 // 启动监听

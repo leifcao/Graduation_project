@@ -45,14 +45,17 @@ router.post('/getComment', (req, res) => {
     var oldlist = [];
     // 分类评论和回复内容
     for(var i=0;i<list.length;i++){
+      //  targetName 为空表示为直接留遗言
       if(list[i].targetName==''){
         newlist.push(list[i]);
       }else{
+        // 回复数组
         oldlist.push(list[i]);
       }
     }
     for(var i=0;i<newlist.length;i++){
       for(var j=0;j<oldlist.length;j++){
+        // 判断回复的目标和直接留言的人id是否相等
         if(newlist[i].cid == oldlist[j].tag ){
           if(newlist[i].target == undefined){
             newlist[i].target =[];
