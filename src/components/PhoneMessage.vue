@@ -518,7 +518,6 @@
       },
       //添加手机进如对比栏
       addCompare(item) {
-        this.comparebtnFlag = false;
         var pidFlag = true;
         if (this.compareCarNum == 3) {
           alert('抱歉你只能选三款产品进行比较');
@@ -531,6 +530,7 @@
             return;
           }
         });
+        this.comparebtnFlag = false;
         if (pidFlag) {
           this.compareCarArray.push(item);
           var compareNumber = this.compareCarArray.length;
@@ -675,6 +675,7 @@
           if (userName == '') {
             alert('请登录页面');
             this.$store.commit('LoginComment');
+            this.replyflag = '';
             this.DontRepeat = true;
             return;
           } else {
@@ -750,6 +751,7 @@
           if (res.status === 200) {
             // console.log(res);
             this.phoneRecommend = res.data;
+            this.comparebtnFlag = true;
           }
         });
       },
