@@ -16,7 +16,7 @@
             <li>
               <div class="pmiddle_firstgid">
                 <i class="Recommend Memoryicon">推荐</i>
-                <i class="Recommend Memoryicon1" style="top: 45px;">推荐级别极高</i>
+                <i class="Recommend Memoryicon1" style="top: 45px;">推荐</i>
                 <img src="" alt="">
                 <h5></h5>
               </div>
@@ -70,12 +70,14 @@
               <p>{{item.Resolvingpower}}</p>
               <p class="pmiddleTitle"></p>
               <p>{{item.cpuFrequen}}</p>
-              <p><i :class="{'Memoryicon':item.Memory=='8GB','Memoryicon1':item.Memory=='12GB'}"></i>{{item.Memory}}</p>
-              <p :title="item.Battery1"><i :class="GetBattery(item.Battery)"></i>{{item.Battery}}</p>
+              <!--              <p><i :class="{'Memoryicon':item.Memory=='8GB','Memoryicon1':item.Memory=='12GB'}"></i>{{item.Memory}}</p>-->
+              <p><i :class="{'Memoryicon1':Memory==index}"></i>{{item.Memory}}</p>
+              <p :title="item.Battery1"><i :class="GetBattery(item.Battery)"></i><i
+                :class="{'Memoryicon1':battery==index}"></i>{{item.Battery}}</p>
               <p>{{item.batteryType}}</p>
               <p class="pmiddleTitle"></p>
               <p :title="item.Postposition">{{item.Postposition}}</p>
-              <p :title="item.Preposition">{{item.Preposition}}</p>
+              <p :title="item.Preposition"><i :class="{'Memoryicon1':Preposition==index}"></i>{{item.Preposition}}</p>
               <p>{{item.Aperture}}</p>
               <p class="pmiddleTitle"></p>
               <p :title="item.navigation">{{item.navigation}}</p>
@@ -87,7 +89,8 @@
         </div>
         <div class="pmiddle_CpuMess">
           <h1>CPU对比情况
-            <span @mouseover="Tiantiflag=true" @mouseout="Tiantiflag=false" style="float: right;height:25px">Cpu天梯图</span></h1>
+            <span @mouseover="Tiantiflag=true" @mouseout="Tiantiflag=false"
+                  style="float: right;height:25px">Cpu天梯图</span></h1>
           <div id="pmiddle_CpuTianti" @mouseover="Tiantiflag=true" @mouseout="Tiantiflag=false" v-show="Tiantiflag">
           </div>
           <div id="pmiddle_Cpu" style="width: 100%;height: 300px">
@@ -176,6 +179,13 @@
         CPUscore: [], //cpu score
         AllCPU: [],  //全部cpu
         Tiantiflag: true, //cpu天体表显影
+
+        //  推荐图标
+        totallike:'', // 综合推荐
+        Memory: '', //内存
+        battery: '', //电池
+        Preposition: '', //前置
+        Resolvingpower:'',//主屏像素
       }
     },
     created() {
@@ -190,6 +200,44 @@
       });
     },
     methods: {
+      // 获取推荐图标
+      GetLike() {
+        var list = this.PhoneList;
+        var maxRAM = 0;
+        var maxBattery = 0;
+        var maxPreposition = 0;
+        var maxResolvingpower = 0
+        list.forEach((item, index) => {
+          // 判断是否为空{}对象
+          if (item.Memory) {
+            var RAM = item.Memory.split('GB');
+            var battery = item.Battery.split('mAh');
+            var Preposition = item.Preposition.split('万像素');
+            var Resolvingpower = item.Resolvingpower.split('像素');
+            // 判断内存最大
+            if (maxRAM < Number(RAM[0])) {
+              maxRAM = Number(RAM[0]);
+              this.Memory = index;
+            }
+            // 判断电池最大
+            if (maxBattery < Number(battery[0])) {
+              maxBattery = Number(battery[0]);
+              this.battery = index;
+            }
+            //前置推荐 判断最大
+            if (maxPreposition < Number(Preposition[0])) {
+              maxPreposition = Number(Preposition[0]);
+              this.Preposition = index;
+            }
+          // //  判断主屏像素
+          //   if (maxResolvingpower < Number(Resolvingpower[0])) {
+          //     maxResolvingpower = Number(Resolvingpower[0]);
+          //     this.Resolvingpower = index;
+          //   }
+
+          }
+        })
+      },
       //返回 数字，字符串中提取数字
       GetNumber(str) {
         let str1 = str
@@ -256,9 +304,9 @@
         axios.post(url, {array}).then(res => {
           if (res.status === 200) {
             // this.PhoneList = res.data;
-            for(var l=0;l<array.length;l++){
-              for(var j=0;j<res.data.length;j++){
-                if(array[l]==res.data[j].pid){
+            for (var l = 0; l < array.length; l++) {
+              for (var j = 0; j < res.data.length; j++) {
+                if (array[l] == res.data[j].pid) {
                   this.PhoneList.push(res.data[j])
                 }
               }
@@ -299,7 +347,7 @@
                 Listlength = false;
               }
             }
-
+            this.GetLike();//推荐图标
             this.GetCPUmessage();// cpu信息
           }
         })
@@ -318,22 +366,23 @@
         let nameArray = data.obj.name.split("（");
         // this.pixeldatas.push({value: str, name: nameArray[0]});
         // this.pixeldata1.push(nameArray[0]);
-        this.pixeldatas.splice(data.indexflag,0,{value: str, name: nameArray[0]});
-        this.pixeldata1.splice(data.indexflag,0,nameArray[0]);
+        this.pixeldatas.splice(data.indexflag, 0, {value: str, name: nameArray[0]});
+        this.pixeldata1.splice(data.indexflag, 0, nameArray[0]);
         this.pixelcharts.setOption(this.pixeloptions);
         //前置像素Echart重绘
         var str1 = this.GetNumber(data.obj.Preposition);
-        this.data.xAxis.splice(data.indexflag,0,nameArray[0]);
-        this.data.values.splice(data.indexflag,0,str1);
+        this.data.xAxis.splice(data.indexflag, 0, nameArray[0]);
+        this.data.values.splice(data.indexflag, 0, str1);
         this.titleData = [];  //清空信息重绘
         this.seriesData = [];  //清空信息重绘
         this.emitFpixel();
         //  更新对比栏信息
         this.PhoneList.splice(data.indexflag, 1, data.obj);
         var array = JSON.parse(sessionStorage.getItem('phone'));
-        array.splice(data.indexflag,0,data.obj);
+        array.splice(data.indexflag, 0, data.obj);
         sessionStorage.setItem('phone', JSON.stringify(array));
-
+        //更新like推荐
+        this.GetLike();
         //  更新CPU对比
         var temp = this.Object.CPU;
         temp = temp.replace(/\s*/g, ""); //去空格
@@ -352,7 +401,7 @@
             return true;
           }
         });
-        console.log(this.CPUoption.xAxis.data,this.CPUoption.series[0].data)
+        console.log(this.CPUoption.xAxis.data, this.CPUoption.series[0].data)
 
         this.CPUchart.setOption(this.CPUoption);
       },
@@ -386,6 +435,7 @@
         this.PhoneList.splice(index, 1, {});
         //  更新对比栏信息
         sessionStorage.setItem('phone', JSON.stringify(array));
+        this.GetLike();
       },
       //  获取Cpu信息列表
       GetCPUmessage() {
@@ -557,7 +607,7 @@
             }
           }]
         });
-      //  防止渲染echart时无法获取宽度，等渲染完后隐藏
+        //  防止渲染echart时无法获取宽度，等渲染完后隐藏
         this.Tiantiflag = false;
       },
       //drawPixel 后置像素 图
@@ -876,14 +926,14 @@
 
   .Memoryicon {
     height: 30px;
-    left: 15px;
+    left: 7px;
     top: 7px;
     background: url("../assets/icons/like-icon.png") no-repeat 0 top;
   }
 
   .Memoryicon1 {
     height: 30px;
-    left: 15px;
+    left: 7px;
     top: 7px;
     background: url("../assets/icons/like-icon.png") no-repeat 0 bottom;
   }
