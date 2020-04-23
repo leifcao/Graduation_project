@@ -88,34 +88,36 @@
           </ul>
         </div>
         <div class="pmiddle_CpuMess">
-          <h1>CPU对比情况
-            <span @mouseover="Tiantiflag=true" @mouseout="Tiantiflag=false"
-                  style="float: right;height:25px">Cpu天梯图</span></h1>
+          <div class="CPUTian">
+            <span style="float: right;height:25px" @mouseover="Tiantiflag=true" @mouseout="Tiantiflag=false">Cpu天梯图</span></div>
           <div id="pmiddle_CpuTianti" @mouseover="Tiantiflag=true" @mouseout="Tiantiflag=false" v-show="Tiantiflag">
           </div>
           <div id="pmiddle_Cpu" style="width: 100%;height: 300px">
           </div>
           <div class="pmiddle_Memory">
             <div class="pmiddle_MemoryMain">
-              <h1>运行内存对比情况</h1>
+
               <div class="pmiddle_MemoryMess">
                 <span>4GB以下<br/>大型软件运行卡顿</span>
                 <span>4GB-8GB<br/>大型软件运行流畅</span>
                 <span>8GB以上<br/>大型软件运行超快</span>
               </div>
+
               <p class="MemoryRows">
                 <span v-for="(item,index) in PhoneList" :key="index" :style="{width: GetPrencent(item.Memory)}">{{item.Memory}}</span>
               </p>
+              <h1>运行内存对比情况</h1>
             </div>
           </div>
           <div>
             <div class="pmiddle_pixel">
-              <h1>后置摄像头像素对比</h1>
+
               <div class="pmiddle_behind" id="Pixel">
               </div>
-              <h1>前置摄像头像素对比</h1>
               <div class="pmiddle_fontside" id="fontPixel">
               </div>
+              <h1>前置摄像头像素对比</h1>
+
             </div>
           </div>
 
@@ -615,6 +617,17 @@
         let _this = this;
         _this.pixelcharts = echarts.init(document.getElementById(id));
         _this.pixeloptions = {
+          title:{
+            text:'后置摄像头像素对比',
+            x:'center',
+            y:'bottom',
+            textStyle: {//主标题文本样式{"fontSize": 18,"fontWeight": "bolder","color": "#333"}
+              fontSize: 16,
+              fontStyle: 'normal',
+              fontWeight: 'bold',
+              color:'#633232',
+            },
+          },
           tooltip: {
             trigger: 'item',
             formatter: '{a} <br/>{b}: {c} (万像素)',
@@ -632,7 +645,7 @@
             {
               name: '后置像素',
               type: 'pie',
-              radius: ['55%', '70%'],  //同心圆 内径和外径
+              radius: ['50%', '65%'],  //同心圆 内径和外径
               avoidLabelOverlap: false,
               itemStyle: {
                 normal: {
@@ -751,6 +764,17 @@
         let _this = this;
         _this.CPUchart = echarts.init(document.getElementById(id));
         _this.CPUoption = {
+          title:{
+            text:'cpu对比情况',
+            x:'center',
+            y:'5px',
+            textStyle: {//主标题文本样式{"fontSize": 18,"fontWeight": "bolder","color": "#333"}
+              fontSize: 16,
+              fontStyle: 'normal',
+              fontWeight: 'normal',
+              color:'#ffffff',
+            },
+          },
           backgroundColor: '#011c3a',
           xAxis: {
             data: _this.CPUdata,
@@ -1082,10 +1106,13 @@
   }
 
   .pmiddle_CpuMess h1 {
-    box-shadow: 0px -5px 3px #848070;
+    box-shadow: 0px 5px 3px #848070;
     padding: 5px;
     /* color: #ffffff; */
     color: #633232;
+    font-size: 16px;
+    height: 20px;
+    margin-bottom: 10px;
   }
 
   #pmiddle_CpuTianti {
@@ -1175,6 +1202,14 @@
   /*  !*background-color: yellow;*!*/
   /*  background-image: linear-gradient(to right, #cecece, #b0b0b0, #cc98d0);*/
   /*}*/
+
+  .CPUTian{
+    box-shadow: 0px 5px 3px #848070;
+    padding: 5px;
+    color: #633232;
+    height: 20px;
+    font-weight: bold;
+  }
 
   .pmiddle_pixel {
   }
