@@ -1,13 +1,15 @@
 <template>
   <div id="hello">
     <div id="boxFixed" class="header" :class="{'headerFixed': isFixed}">
-      <div class="header_left"><div class="homepage" v-show="homeflag" @click="$router.push({path:'/homepage'})">首页</div>
-        手机参数对比平台</div>
+      <div class="header_left">
+        <div class="homepage" v-show="homeflag" @click="$router.push({path:'/homepage'})">首页</div>
+        手机参数对比平台
+      </div>
       <div class="header_right">
         <!--        <span>搜索</span>-->
         <div>
           <span v-show="!tiggerflag" class="loginname">{{userName}}</span>
-          <img class="imageHead" src="../assets/logo.png" v-show="!tiggerflag">
+          <img class="imageHead" src="../assets/logo.png" v-show="!tiggerflag" @click="notify"><i v-show="feedbackNum!=0">{{feedbackNum}}</i>
           <span @click="childMethodComment()" v-if="tiggerflag">登录</span>
           <span @click="exit()" v-else style="margin-left: 35px">{{mess}}</span>
         </div>
@@ -28,7 +30,8 @@
             </div>
             <div>
               <label for="pass">密码</label>
-              <input type="password" id="pass" v-model="password" placeholder="请输入密码" autocomplete="off" @keyup.enter="Login">
+              <input type="password" id="pass" v-model="password" placeholder="请输入密码" autocomplete="off"
+                     @keyup.enter="Login">
             </div>
             <div v-show="addUserflag">
               <div>
@@ -70,12 +73,15 @@
         <span @click="cancelMess(index)">取消</span>
       </div>
     </div>
+
+
   </div>
 </template>
 
 <script>
   import axios from 'axios'
   import urlkit from '../url/urlkit';
+
   export default {
     name: "login",
     data() {
@@ -95,6 +101,7 @@
         Phonetype: ['华为', '小米', '荣耀', '苹果', 'vivo', 'OPPO', '一加'],
         feedbacklist: [], //驳回信息列表
         feedflags: false, //驳回信息默认隐藏
+        feedbackNum:0,
         homeflag: false,
       }
     },
@@ -112,6 +119,11 @@
         let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;//滚动条偏移量
         let offsetTop = document.querySelector("#boxFixed").offsetTop;// 要滚动到顶部吸附的元素的偏移量
         this.isFixed = scrollTop > offsetTop ? true : false;  // 如果滚动到顶部了，this.isFixed就为true
+      },
+      // 消息通知的显示
+      notify() {
+        // alert('12')
+        this.feedBackMess();
       },
       //登录
       Login() {
@@ -131,8 +143,8 @@
           //设置cookie
           // this.setCookie(this.userName, phonetype);
           //设置session
-          sessionStorage.setItem('userName',JSON.stringify(this.userName));
-          sessionStorage.setItem('phonetype',JSON.stringify(phonetype));
+          sessionStorage.setItem('userName', JSON.stringify(this.userName));
+          sessionStorage.setItem('phonetype', JSON.stringify(phonetype));
           // this.getCookie();
           this.password = '';
           this.$store.commit('LoginSuccess');  //促发vux方法,隐藏登录框;
@@ -202,8 +214,8 @@
         this.tiggerflag = true;
         // this.setCookie('', '');
         //设置session 用户和手机类型
-        sessionStorage.setItem('userName',JSON.stringify(''));
-        sessionStorage.setItem('phonetype',JSON.stringify(''));
+        sessionStorage.setItem('userName', JSON.stringify(''));
+        sessionStorage.setItem('phonetype', JSON.stringify(''));
         //管理员注销时返回路径
         if (this.$route.path === '/AdminPage') {
           this.$router.go(-1);
@@ -230,9 +242,9 @@
       checkCookie() {
         var cookies = document.cookie
         // console.log(cookies,document.cookie)
-        if(cookies==''){
+        if (cookies == '') {
           this.setCookie('', '');  //设置空cookie防止报错
-          return ;
+          return;
         }
         var name = this.getCookie();
         if (name.name == '') {
@@ -243,12 +255,12 @@
           this.userName = name.name;
         }
       },
-      checkSession(){
+      checkSession() {
         var userName = JSON.parse(sessionStorage.getItem('userName')) || '';
-        if(userName ==''){
+        if (userName == '') {
           this.tiggerflag = true;
-          sessionStorage.setItem('userName',JSON.stringify(''));
-        }else{
+          sessionStorage.setItem('userName', JSON.stringify(''));
+        } else {
           this.tiggerflag = false;
           this.userName = userName;
         }
@@ -266,10 +278,12 @@
         axios.post(url, {name}).then(res => {
           if (res.status === 200) {
             if (res.data.length == 0) {
-              this.feedflags = false
+              this.feedflags = false;
             } else {
               this.feedbacklist = res.data;
-              this.feedflags = true
+              this.feedbackNum = this.feedbacklist.length;
+              this.feedflags = true;
+
             }
             // console.log(res);
           }
@@ -278,10 +292,11 @@
         })
       },
       //确认驳回信息,不会再弹窗
-      sureMess(item,index) {
-        this.feedbacklist.splice(index,1);
-        if(this.feedbacklist.length==0)
-        this.feedflags = false;
+      sureMess(item, index) {
+        this.feedbacklist.splice(index, 1);
+        this.feedbackNum = this.feedbacklist.length;
+        if (this.feedbacklist.length == 0)
+          this.feedflags = false;
         let cid = item.cid;
         let url = urlkit + '/api/AdminProduct/sureReject';
         axios.post(url, {cid}).then(res => {
@@ -291,18 +306,19 @@
         });
 
       },
-      cancelMess(index){
-        this.feedbacklist.splice(index,1);
-        if(this.feedbacklist.length==0){
+      cancelMess(index) {
+        this.feedbacklist.splice(index, 1);
+        if (this.feedbacklist.length == 0) {
           this.feedflags = false;
         }
+
       }
     },
-    watch:{
+    watch: {
       '$route.path': function (path) {
-        if(path=='/' || path =='/homepage'){
+        if (path == '/' || path == '/homepage') {
           this.homeflag = false;
-        }else {
+        } else {
           this.homeflag = true;
         }
       }
@@ -326,7 +342,8 @@
     position: fixed;
     z-index: 1000;
   }
-  .homepage{
+
+  .homepage {
     float: left;
     width: 10%;
     font-size: 17px;
@@ -350,6 +367,21 @@
     background-color: #b5b7b4;
     height: 40px;
     line-height: 40px;
+  }
+
+  .header_right i {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: red;
+    color: #ffffff;
+    line-height: 15px;
+    font-style: normal;
+    display: inline-block;
+    position: absolute;
+    z-index: 1;
+    top: 0px;
+    margin-left: 20px;
   }
 
   .header_right .loginname {
