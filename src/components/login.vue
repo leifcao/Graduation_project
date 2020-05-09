@@ -103,6 +103,7 @@
         feedflags: false, //驳回信息默认隐藏
         feedbackNum:0,
         homeflag: false,
+        notifyInterval:'',//轮询看管理员是否审核
       }
     },
     mounted() {
@@ -152,6 +153,9 @@
           this.tiggerflag = false; //隐藏登录
           //弹出  驳回信息
           this.feedBackMess();
+          this.notifyInterval = setInterval(()=>{
+            this.sendNotityNum();
+          },10000);//十秒轮询机制 推送消息
           alert('登录成功');
           //管理员页面跳转
           if (name == 'admin') {
@@ -216,6 +220,8 @@
         //设置session 用户和手机类型
         sessionStorage.setItem('userName', JSON.stringify(''));
         sessionStorage.setItem('phonetype', JSON.stringify(''));
+        this.notifyInterval = ''; // 通知轮询滞空
+        this.feedbackNum = 0;
         //管理员注销时返回路径
         if (this.$route.path === '/AdminPage') {
           this.$router.go(-1);
@@ -283,7 +289,6 @@
               this.feedbacklist = res.data;
               this.feedbackNum = this.feedbacklist.length;
               this.feedflags = true;
-
             }
             // console.log(res);
           }
@@ -291,6 +296,25 @@
           console.log(err);
         })
       },
+
+      //后台管理员 审核信息前端推送代码
+      sendNotityNum(){
+        let name = this.userName;
+        let url = urlkit + '/api/AdminProduct/RCommentList';
+        axios.post(url, {name}).then(res => {
+          if (res.status === 200) {
+            if (res.data.length == 0) {
+              this.feedflags = false;
+            } else {
+              this.feedbackNum = res.data.length;
+              this.feedflags = true;
+            }
+          }
+        }).catch(err => {
+          console.log(err);
+        })
+      },
+
       //确认驳回信息,不会再弹窗
       sureMess(item, index) {
         this.feedbacklist.splice(index, 1);

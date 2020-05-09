@@ -379,7 +379,7 @@
       <h4 class="Compare_carTitle">[{{compareCarNum}}/3] 对比栏</h4>
       <ul>
         <li class="Compare_contrast" v-for="(item,index) in compareCarArray" v-if="index<3"
-            @mouseover="delePhoneflag = index" @mouseout="delePhoneflag = ''">
+            @mouseover="delePhoneflag = index" @mouseout="delePhoneflag = ''" @click="GoPhoneDetail(item.pid,item.name)">
           <img :src="item.imgsrc" alt="">
           <span class="DelePhone" v-show="delePhoneflag === index?true:false"
                 @click="deleSinglePhone(index)">x</span>
