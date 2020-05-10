@@ -8,6 +8,10 @@
 # install dependencies
 npm install
 
+#跑数据库文件sqlfile,连接数据库
+config/index 修改ip
+src/urlkit 修改本机访问
+
 # serve with hot reload at localhost:8080
 npm run dev
 
